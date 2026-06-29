@@ -1,0 +1,415 @@
+#########################################initialisation step##########################################################################################################
+
+to start with a typescript project you remeber the way you made initialisations of project
+
+inside the terminal in client folder you can use the following command to create a new Vite project with TypeScript:
+client - npm create vite@latest .
+       - Select the framework (e.g., React, Vue, etc.) and then choose TypeScript when prompted. This will set up a new Vite project with TypeScript support.
+       - After the project is created, navigate into the project directory and install the necessary dependencies:
+       - cd client
+       - npm install
+       - You can then start the development server with:
+       - npm run dev
+
+now for the servier side in terminal in server folder with typescript you can use the following steps:
+server ->> npm init -y
+         - This will create a package.json file in the server folder.
+         - Next, install TypeScript and other necessary dependencies:
+         - npm install express mongoose morgan dotenv cors jsonwebtoken bcryptjs --save
+         then install typescript and their types overall for development:
+         ->> npm i -D tsx
+         ->> npm i -D @types/express @types/morgan @types/cors @types/bcryptjs @types/jsonwebtoken
+         ->> npm install typescript ts-node @types/node --save-dev
+         - Create a tsconfig.json file for TypeScript configuration:
+         ->> npx tsc --init
+         - You can then create your server files (e.g., index.ts) and start the server using:
+         ->> npx ts-node index.ts
+         - but if we have nodemon installed globally we can use nodemon to watch for changes and restart the server automatically:
+         ->> npm install -g nodemon
+         
+         then we need to make few changes in the package.json in order for y project to work perfectly like:
+         - add a >> "type" : "module" in package.json to enable ES module support.
+         - add a "start" script in package.json to run the server using tsx or nodemon:
+         - >> "start": "nodemon index.ts" or "start": "tsx index.ts"
+         - >> "dev" : "dev": "nodemon index.ts" or "dev": "tsx index.ts"
+
+         then we need to configure the tsconfig.json file to set the appropriate compiler options for your project. You can customize the settings based on your needs, but a basic configuration might look like this:
+         - uncomment these two ->>"rootDir": "./src",
+                                  "outDir": "./dist",
+
+        - need to make changes in these environment setting ->> "module": "nodenext",
+                                                                "moduleResolution": "nodenext",
+                                                                "target": "ES2020",
+                                                                "types": ["node"],
+                                                                "lib": ["esnext"],
+                                                                "types": ["node"],
+
+        - the stricter mode should be as it is ->> // Stricter Typechecking Options
+                                                                "noUncheckedIndexedAccess": true,
+                                                                "exactOptionalPropertyTypes": true,
+
+        - in recommended options these to be as it is ->> // Recommended Options
+                                                                "strict": true,
+                                                                "skipLibCheck": true,
+
+                                                                "esModuleInterop": true,
+                                                                "resolveJsonModule": true,
+
+       
+
+so now you have a basic setup for both client and server sides of your TypeScript project. You can start building your application by creating components, routes, and other necessary files in the respective folders. Make sure to keep your dependencies updated and follow best practices for TypeScript development.
+
+  the first thing you should do is to run both normally with npm run dev and then try that both are running fine or not like 
+
+  client - install tailwind css using the tailwindcss installation guide for Vite and React (or your chosen framework). You can follow the official documentation to set it up properly.
+         - test it and use it on app.tsx for example <h1 className="bg-pink-500">Hello, Tailwind!</h1> to see if it is working fine or not. If it is working fine then you can move forward with the project.
+
+  
+  server - you can create a simple Express server in index.ts to test if it's running fine. For example, you can set up a basic route that returns a JSON response:
+         - import express from "express";
+import dotenv from "dotenv";
+import morgan from "morgan";
+import cors from "cors";
+import mongoose from "mongoose";
+
+const app = express();
+
+dotenv.config();
+
+// Middleware
+app.use(express.json());
+app.use(morgan("dev"));
+app.use(cors());
+
+app.get("/",(req,res)=>{
+    res.send("Hello from the auth service!")
+})
+
+app.listen(process.env.PORT,()=>{
+    console.log(`Server is running on port ${process.env.PORT} `)
+})
+
+- now if it is working fine then you can move forward with the project and start building your application.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######################################    mongodb setup    ###############################################################################################
+
+   go to mongodb atlas and create a new cluster and then create a new database and then create a new collection in that database. After that you can get the connection string from the cluster and then use it in your server side code to connect to the database.
+   create a config folder in src and then ceate a new file called db.ts in that folder. In that file you can use the following code to connect to the database:
+   ->> import mongoose from "mongoose";
+
+       const connectDB = async()=>{
+           try{
+               await mongoose.connect(process.env.MONGO_URI as string,{
+                   dbName: process.env.DB_NAME as string || "zomato_clone",
+               });
+               clg(mongodb connected successfully);
+           }catch(error){
+               console.log("Error while connecting to mongoDB",error);
+           }
+       }
+
+export default connectDB;
+
+now that the mongodb is connected succesfully we'll move to create the model of the user
+
+################################# user model ######################################
+
+create a model folder in src and then create a new file called user.model.ts in that folder. In that file you can use the following code to create the user model:
+
+always remember first we create the interface of the user which tells us the type of the user fields
+and then we create the schema of the user that tells us the structure and validation rules, 
+and then we create the model of the user which is an instance of the schema.
+
+check the user model code below:
+
+import mongoose, {Document, Schema} from "mongoose";
+
+export interface IUser extends Document{   //this IUser interface is used to define the structure of the user document in the database. It extends the Document interface from mongoose, which provides additional properties and methods for working with MongoDB documents.
+    name: string;
+    email:string;
+    image:string;
+    role:string;
+}
+
+const schema: Schema<IUser> = new Schema({  //this schema:Schema<IUser> is used to define the structure of the user document in the database. It specifies the fields and their types, as well as any validation rules or default values.
+    name:{
+        type:String,
+        required:true
+    },
+    email:{
+        type:String,
+        required:true
+    },
+    image:{
+        type:String,
+        required:true
+    },
+    role:{
+        type:String,
+        default:null
+    }
+},{
+    timestamps:true
+})
+
+const User = mongoose.model<IUser> ("User", schema); //this is the User model which is of IUser type which is used to interact with the user collection in the database. It provides methods for creating, reading, updating, and deleting user documents.
+
+export default User; //exporting the User model so that it can be used in other parts of the application, such as in controllers or services that handle user-related functionality.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################# before creating a user controller we created a middleware for smooth trycatch blocks #######################################################
+
+we don't wanna define these below things again and again in every controller so we can create a middleware for that which will handle the trycatch blocks for us and we can use that middleware in our controllers.
+>>>> async(req:Request, res:Response)
+>>>> catch(error){
+       message: error.message || "An unexpected error occurred"
+     }
+
+create a middleware folder in src and then create a new file called trycatch.ts in that folder. In that file you can use the following code to create the asyncHandler middleware:
+
+import {Request, Response, RequestHandler, NextFunction} from "express"; // Importing necessary types from Express
+
+const tryCatch = (handler: RequestHandler): RequestHandler =>{   // Defining a higher-order function named tryCatch that takes a RequestHandler as an argument and returns a new RequestHandler. This function is used to wrap asynchronous route handlers in a try-catch block to handle errors gracefully.
+    return async(req: Request, res: Response, next:NextFunction) =>{  // Returning an asynchronous function that takes the request, response, and next function as parameters. This function will execute the provided handler and catch any errors that occur during its execution.
+        try{
+            await handler(req, res, next); // Awaiting the execution of the provided handler function. If the handler throws an error, it will be caught in the catch block below.
+        }catch(error: any){
+            res.status(500).json({  
+                message: error.message || "An unexpected error occurred"
+            })
+        }
+    }
+}  
+
+export default tryCatch;
+
+
+
+
+
+
+
+
+
+
+
+##################################### another middlware for authnticated users ########################################################
+
+
+this middlware is only for authtnticated requests which means that the user is logged in and has a valid token. This middleware will check if the token is valid and if it is, it will allow the request to proceed. If the token is not valid, it will return an error response.
+
+export interfacte AuthenticatedRequest extends Request //////when we write this line extends means we are replacing normal request with our authenticated request which we are creating here and this authenticated request will have a user property which will be of type IUser which we created in the user model. So now we can use this authenticated request in our controllers to get the user details from the token.
+
+
+import {Request, Response, NextFunction} from "express";
+import jwt,{JwtPayload} from "jsonwebtoken";
+import {IUser} from "../models/User.js";
+
+export interface AuthenticatedRequest extends Request{
+    user?: IUser | null;
+}
+
+export const isAuth = async(req:AuthenticatedRequest, res: Response, next:NextFunction):  //here first we are creating a middleware function called isAuth which will check if the user is authenticated or not. If the user is authenticated, it will call the next() function to proceed to the next middleware or route handler. If the user is not authenticated, it will return a 401 Unauthorized response.
+Promise<void> => {
+    try{
+        const authHeader = req.headers.authorization;  //we know that the authorization header is used to send the token from the client to the server. So here we are getting the authorization header from the request headers.
+
+        if(!authHeader || !authHeader.startsWith("Bearer ")){   //here we are checking if the authorization header is present and if it starts with "Bearer ". If it is not present or does not start with "Bearer ", we will return a 401 Unauthorized response.
+            res.status(401).json({
+                message:"Unauthorized: Please Login",
+            })
+            return;
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        if(!token){   //here we are checking if the token is present or not. If it is not present, we will return a 401 Unauthorized response.
+            res.status(401).json({
+                message:"Unauthorized: token missing",
+            })
+            return;        
+        }
+
+            const decodedValue = jwt.verify(token, process.env.JWT_SECRET_KEY as string) as JwtPayload;   //here we are verifying the token using the jwt.verify() method. If the token is valid, it will return the decoded value. If the token is not valid, it will throw an error which will be caught in the catch block below.
+
+            if(!decodedValue || !decodedValue.user){    //here we are checking if the decoded value is present and if it has a user property. If it is not present or does not have a user property, we will return a 401 Unauthorized response.
+                res.status(401).json({
+                    message:"Unauthorized: Invalid token",
+                })
+                return;
+            }
+
+            req.user = decodedValue.user;   //here we are setting the user property of the request object to the user property of the decoded value. This will allow us to access the user details in the controllers.
+            next();   //here we are calling the next() function to proceed to the next middleware or route handler.
+        }catch(error: any){
+            console.error("JWT verify error:", error);
+            const message = error?.message || "Unauthorized: jwt error";
+            res.status(401).json({
+                message,
+            })
+        }
+}
+
+
+
+
+
+
+
+
+
+
+############################################### user controller ###################################################################
+
+
+we know that the web development is all about data like how data flows from the client to the server and then to the database and then back to the client. So we need to create a controller for the user which will handle the requests from the client and then send the response back to the client.
+
+for this project we are using google auth but for now we are creating a normal login controller that will just take the email and user can login
+
+
+
+############################################ routes ##############################
+
+create a routes folder in src and then create a new file called user.routes.ts in that folder. In that file you can use the following code to create the user routes:
+
+import Router from "express";
+import { googleLoginController, loginController, registerController, addUserRole, myProfile } from "../controllers/user.controller.js";
+import { isAuth } from "../middlewares/isAuth.js";
+
+const router = Router();
+
+router.post("/login", loginController);
+
+router.post("/register", registerController);
+
+router.post("/google-login", googleLoginController);
+
+router.put("/add/role", isAuth, addUserRole);
+
+router.get("/me",isAuth, myProfile);
+
+export default router;
+
+ 
+########################### for gooogle auth ##############################################
+
+
+for google we need to create a file in config as googleConfig.ts and then we need few things inside this google config.ts file like google client id, google client secret and google redirect uri. We can get these things from the google developer console. After that we need to create a new instance of the google auth client and then we need to set the credentials for the google auth client. After that we can use this google auth client to get the access token and then we can use this access token to get the user details from the google api.
+
+1. search google cloud console 
+2. then click on top right console option
+3. then we create a new project of any name of our project
+4. then come to our project and go to apis and services and then go to oauth consent screen 
+5. go to client and get started and give app name and our email and next for external and xonatct infro the same email next and finish and create
+6. create oauth client option click and web applicationfor website and then web client 1 and then auth javascrip origin so here we will simple we write http://localhost:5173 and then redirect uri we will write http://localhost:5173/auth/google/callback and then create and then we will get our client id and client secret and then we will use these things in our googleConfig.ts file.
+
+the code given below
+
+export const googleLoginUser = TryCatch(async (req, res)=>{
+    const {code} = req.body; //this code is coming from the frontend
+
+    if(!code){
+        res.status(400).json({
+            message: "Authorization code is required",
+        })
+    }
+
+    const googleRes = await oauth2client.getToken(code);
+
+    oauth2client.setCredentials(googleRes.tokens)
+
+    const userRes = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`)
+
+    const {email, name, picture} = userRes.data
+
+        let user = await User.findOne({email});
+
+        if(!user){
+            user = await User.create({
+                name,
+                email,
+                image: picture,
+            })
+        }
+
+        const token = jwt.sign({user}, process.env.JWT_SECRET_KEY as string,{
+            expiresIn: "15d",
+        })
+
+        res.status(200).json({
+            message: "Login successful",
+            token,
+            user,
+        })
+})
+
+#####################################################################
+
+for ths only create a file as google config in that file we will keep our google client id and client secreat and redirect uri.
+
+import {google} from 'googleapis';
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+// const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+
+export const oauth2client = new google.auth.OAuth2(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    "postmessage"
+    // GOOGLE_REDIRECT_URI
+);
+
+######################################### now frontend test of all ########################################################
+
+
+
+
+######################################## google auth in frontend ###########################################
+
+
+we need a google consent screen fro which we need to install a package in our prject which is 
+
+>> npm install @react-oauth/google@latest
+
+now after this go to documentation of this package and then follow the steps given there to implement google auth in our project. 
+We need to wrap our app in main.tsx with GoogleOAuthProvider 
+and then we need to use GoogleLogin component in our login page. 
+We also need to handle the response from google and then send it to our backend for further processing.
+
