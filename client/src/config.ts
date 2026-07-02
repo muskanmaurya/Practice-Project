@@ -1,0 +1,1 @@
+export const authService = "http://localhost:8000/api/auth";

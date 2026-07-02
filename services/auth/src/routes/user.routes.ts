@@ -6,7 +6,19 @@ const router = Router();
 
 router.post("/login", loginController);
 
+/**
+ * @description Register a new user
+ * @route POST /api/auth/register
+ * @access Public
+ */
+
 router.post("/register", registerController);
+
+/**
+ * @description Google login
+ * @route POST /api/auth/google-login
+ * @access Public
+ */
 
 router.post("/google-login", googleLoginController);
 

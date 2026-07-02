@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from '@react-oauth/google';
+import { authService } from "../config";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -43,9 +44,11 @@ export default function RegisterPage() {
   const handleGoogleLogin = async(authResult: any) => {
     try {
       setLoading(true);
-      const result = await axios.post("http://localhost:8000/api/auth/google-login",{
+      const result = await axios.post(`${authService}/google-login`,{
         code : authResult["code"],
       })
+
+      console.log("client result: ",result);
 
       localStorage.setItem("token", result.data.token);
       toast.success(result.data.message);

@@ -265,6 +265,8 @@ export const registerController = TryCatch(async (req: Request, res: Response) =
 export const googleLoginController = TryCatch(async (req: Request, res: Response) => {
     const { code } = req.body;
 
+    console.log("code: ",code);
+
     // FIX: Added return to stop execution on missing authorization code
     if (!code) {
         return res.status(400).json({
@@ -275,6 +277,8 @@ export const googleLoginController = TryCatch(async (req: Request, res: Response
 
     const googleRes = await oauth2client.getToken(code);
     oauth2client.setCredentials(googleRes.tokens);
+
+    console.log("googleres: ", googleRes);
 
     const userRes = await axios.get(
         `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
@@ -291,11 +295,15 @@ export const googleLoginController = TryCatch(async (req: Request, res: Response
         });
     }
 
+    console.log("user: ",user)
+
     const token = jwt.sign(
         { id: user._id },
          process.env.JWT_SECRET as string || "my_temporary_super_secret_backup_string", // 🔥 Added a fallback backup string,
         { expiresIn: "15d" }
     );
+
+    console.log("token: ",token)
 
     // FIX: Sanitize password output for account linking edge cases
     const sanitizedUser = user.toObject();
